@@ -1,0 +1,19 @@
+version: '3.1'
+
+services:
+
+  db:
+    container_name: stock-api-db
+    image: postgres:15.3-alpine3.18
+    restart: always
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: stock
+    ports:
+      - 127.0.0.1:5432:5432
+    volumes:
+      - pd:/var/lib/postgresql/data
+
+volumes:
+  pd:
