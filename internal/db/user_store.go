@@ -101,3 +101,35 @@ func (s *userStore) GetByEmail(ctx context.Context, email string, dst *models.Us
 
 	return row.Scan(&dst.Id, &dst.Active, &dst.Name, &dst.Email, &dst.TimeCreated, &dst.TimeUpdated)
 }
+
+func (s *userStore) Put(ctx context.Context, user *models.User) (err error) {
+	_, err = s.db.Exec(
+		ctx,
+		`UPDATE users 
+		SET
+			active = $1,
+			name = $2,
+			email = $3,
+			"timeCreated" = $4,
+			"timeUpdated" = $5
+		WHERE id = $6`,
+		&user.Active,
+		&user.Name,
+		&user.Email,
+		&user.TimeCreated,
+		&user.TimeUpdated,
+		&user.Id,
+	)
+
+	return
+}
+
+func (s *userStore) Delete(ctx context.Context, userId xid.ID) (err error) {
+	_, err = s.db.Exec(
+		ctx,
+		`DELETE FROM users WHERE id = $1`,
+		userId,
+	)
+
+	return
+}

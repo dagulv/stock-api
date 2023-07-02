@@ -48,3 +48,13 @@ func (s UserService) SetPassword(ctx context.Context, password string, userId xi
 
 	return s.Store.SetPassword(ctx, string(passwordHash[:]), userId)
 }
+
+func (s UserService) Put(ctx context.Context, user *models.User) error {
+	user.TimeUpdated = pgtype.Timestamptz{Valid: true, Time: time.Now()}
+
+	return s.Store.Put(ctx, user)
+}
+
+func (s UserService) Delete(ctx context.Context, userId xid.ID) error {
+	return s.Store.Delete(ctx, userId)
+}

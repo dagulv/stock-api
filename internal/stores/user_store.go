@@ -13,4 +13,6 @@ type UserStore interface {
 	GetByEmail(ctx context.Context, email string, dst *models.User) error
 	List(ctx context.Context, set func(*models.User) error) error
 	Get(ctx context.Context, userId xid.ID, dst *models.User) error
+	Put(ctx context.Context, user *models.User) error
+	Delete(ctx context.Context, userId xid.ID) error
 }
