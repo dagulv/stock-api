@@ -11,7 +11,8 @@ import (
 )
 
 type Server struct {
-	UserService *services.UserService
+	UserService  *services.UserService
+	StockService *services.StockService
 }
 
 func (s *Server) Start(ctx context.Context) (err error) {
@@ -22,6 +23,10 @@ func (s *Server) Start(ctx context.Context) (err error) {
 
 	routes.Routes(&routes.UserRoutes{
 		Service: s.UserService,
+	}).CurrentRoutes(e.Group("/api"))
+
+	routes.Routes(&routes.StockRoutes{
+		Service: s.StockService,
 	}).CurrentRoutes(e.Group("/api"))
 
 	return e.Start(":8080")
