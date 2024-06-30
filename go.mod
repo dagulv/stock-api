@@ -2,8 +2,6 @@ module github.com/dagulv/stock-api
 
 go 1.22.4
 
-replace github.com/dagulv/ticker v1.0.0 => ../ticker
-
 require github.com/dagulv/ticker v1.0.0
 
 require (

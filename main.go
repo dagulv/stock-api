@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/dagulv/stock-api/internal/adapter/timescale"
+	"github.com/dagulv/stock-api/internal/core/domain"
 	"github.com/dagulv/stock-api/internal/core/service"
 	"github.com/dagulv/stock-api/internal/env"
 	"github.com/dagulv/ticker"
@@ -56,7 +57,7 @@ func start(ctx context.Context) (err error) {
 	// 	Tick:     tickerService,
 	// }
 
-	err = ticker.Start(ctx, tickerService.Store)
+	err = ticker.Start(ctx, tickerService.Store, domain.Symbols)
 
 	// return server.StartServer(ctx)
 	return
