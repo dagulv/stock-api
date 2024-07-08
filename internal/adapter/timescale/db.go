@@ -4,16 +4,10 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/dagulv/stock-api/internal/core/port"
 	"github.com/dagulv/stock-api/internal/env"
 	"github.com/jackc/pgx/v5/pgxpool"
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
-
-type timescale struct {
-	db *pgxpool.Pool
-	port.Ticker
-}
 
 func Connect(ctx context.Context, env env.Env) (*pgxpool.Pool, error) {
 	pool, err := pgxpool.New(ctx, env.DatabaseUrl)

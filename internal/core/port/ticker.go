@@ -7,6 +7,6 @@ import (
 )
 
 type Ticker interface {
-	ticker.Ticker
-	Insert(context.Context, ticker.Tick) error
+	// Insert(context.Context, ticker.Tick) error
+	CopyFrom(context.Context, []ticker.Tick) error
 }

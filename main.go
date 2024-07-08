@@ -56,8 +56,11 @@ func start(ctx context.Context) (err error) {
 	// 	WebAuthn: webAuthn,
 	// 	Tick:     tickerService,
 	// }
+	if err = tickerService.SpawnBatcher(ctx); err != nil {
+		return
+	}
 
-	err = ticker.Start(ctx, tickerService.Store, domain.Symbols)
+	err = ticker.Start(ctx, &tickerService, domain.Symbols)
 
 	// return server.StartServer(ctx)
 	return
