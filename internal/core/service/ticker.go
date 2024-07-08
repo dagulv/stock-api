@@ -14,7 +14,7 @@ type Ticker struct {
 	ticks []ticker.Tick
 }
 
-func (s Ticker) SpawnBatcher(ctx context.Context) (err error) {
+func (s *Ticker) SpawnBatcher(ctx context.Context) (err error) {
 	t := time.NewTicker(time.Second * 30)
 
 	go func() {
