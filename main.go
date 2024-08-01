@@ -3,11 +3,10 @@ package main
 import (
 	"context"
 
+	"github.com/dagulv/stock-api/internal/adapter/http"
 	"github.com/dagulv/stock-api/internal/adapter/timescale"
-	"github.com/dagulv/stock-api/internal/core/domain"
 	"github.com/dagulv/stock-api/internal/core/service"
 	"github.com/dagulv/stock-api/internal/env"
-	"github.com/dagulv/ticker"
 )
 
 func main() {
@@ -51,17 +50,14 @@ func start(ctx context.Context) (err error) {
 
 	// json := jsoniter.ConfigFastest
 
-	// server := http.Server{
-	// 	Json:     json,
-	// 	WebAuthn: webAuthn,
-	// 	Tick:     tickerService,
-	// }
-	if err = tickerService.SpawnBatcher(ctx); err != nil {
+	server := http.Server{
+		// Json:     json,
+		// WebAuthn: webAuthn,
+		Tick: tickerService,
+	}
+	if err = tickerService.Spawn(ctx); err != nil {
 		return
 	}
 
-	err = ticker.Start(ctx, &tickerService, domain.Symbols)
-
-	// return server.StartServer(ctx)
-	return
+	return server.StartServer(ctx)
 }
