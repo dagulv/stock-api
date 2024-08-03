@@ -3,14 +3,14 @@ module github.com/dagulv/stock-api
 go 1.22.4
 
 require (
-	github.com/dagulv/ticker v0.0.1
+	github.com/dagulv/ticker v0.1.0
 	github.com/jackc/pgx/v5 v5.6.0
 	github.com/json-iterator/go v1.1.12
 	github.com/rubenv/sql-migrate v1.7.0
 	gopkg.in/yaml.v2 v2.4.0
 )
 
-replace github.com/dagulv/ticker v0.0.1 => ../ticker
+// replace github.com/dagulv/ticker v0.0.1 => ../ticker
 
 require (
 	github.com/fxamacker/cbor/v2 v2.7.0 // indirect
@@ -44,7 +44,7 @@ require (
 )
 
 require (
-	github.com/go-webauthn/webauthn v0.10.2
+	github.com/go-webauthn/webauthn v0.11.0
 	github.com/joho/godotenv v1.5.1
 	github.com/labstack/echo/v4 v4.12.0
 	github.com/rs/xid v1.5.0
