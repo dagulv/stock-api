@@ -7,6 +7,7 @@ import (
 
 	"github.com/dagulv/stock-api/internal/core/port"
 	"github.com/dagulv/ticker"
+	"github.com/rs/xid"
 )
 
 type Ticker struct {
@@ -17,14 +18,15 @@ type Ticker struct {
 
 func (s *Ticker) Spawn(ctx context.Context) (err error) {
 	var avanzaIds []int
+	var ids []xid.ID
 
-	if avanzaIds, err = s.Store.GetAvanzaIds(ctx, avanzaIds); err != nil {
+	if ids, avanzaIds, err = s.Store.GetAvanzaIds(ctx, ids, avanzaIds); err != nil {
 		return
 	}
 
-	t := ticker.New[ticker.Tick](s, avanzaIds...)
+	t := ticker.New[ticker.Ohlcv](s, ids, avanzaIds)
 
-	t.FetchHistoric(ctx)
+	t.HistoricJob(ctx)
 
 	// if err = t.StartWebsocket(ctx); err != nil {
 	// 	return
@@ -60,7 +62,5 @@ func (s *Ticker) ExposeTick(ctx context.Context, tick ticker.Tick) (err error) {
 }
 
 func (s *Ticker) Push(m ticker.Method) {
-	log.Println(m)
-	log.Println(m.(ticker.Ohlcv))
 	s.ohlcv = append(s.ohlcv, (m).(ticker.Ohlcv))
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/rs/xid"
 )
 
 type tickerStore struct {
@@ -48,7 +49,7 @@ func (s tickerStore) CopyFrom(ctx context.Context, ticks []ticker.Tick) (err err
 }
 
 func (s tickerStore) InsertHistoricOhlcv(ctx context.Context, ohlcv []ticker.Ohlcv) (err error) {
-	_, err = s.db.CopyFrom(ctx, pgx.Identifier{"stocks_data"}, []string{"time", "symbol", "price", "dayVolume"}, pgx.CopyFromSlice(len(ohlcv), func(i int) ([]any, error) {
+	_, err = s.db.CopyFrom(ctx, pgx.Identifier{"ohlcv"}, []string{"id", "open", "high", "low", "close", "volume", "time"}, pgx.CopyFromSlice(len(ohlcv), func(i int) ([]any, error) {
 		return []any{
 			ohlcv[i].Id,
 			ohlcv[i].Open,
@@ -62,9 +63,10 @@ func (s tickerStore) InsertHistoricOhlcv(ctx context.Context, ohlcv []ticker.Ohl
 	return
 }
 
-func (s tickerStore) GetAvanzaIds(ctx context.Context, avanzaIds []int) (_ []int, err error) {
+func (s tickerStore) GetAvanzaIds(ctx context.Context, ids []xid.ID, avanzaIds []int) (_ []xid.ID, _ []int, err error) {
 	rows, err := s.db.Query(ctx, `
 		SELECT
+			"id",
 			"avanza_id"
 		FROM "company"
 	`)
@@ -76,14 +78,16 @@ func (s tickerStore) GetAvanzaIds(ctx context.Context, avanzaIds []int) (_ []int
 	defer rows.Close()
 
 	for rows.Next() {
-		var id pgtype.Int4
+		var id xid.ID
+		var avanzaId pgtype.Int4
 
-		if err = rows.Scan(&id); err != nil {
+		if err = rows.Scan(&id, &avanzaId); err != nil {
 			return
 		}
 
-		avanzaIds = append(avanzaIds, int(id.Int32))
+		ids = append(ids, id)
+		avanzaIds = append(avanzaIds, int(avanzaId.Int32))
 	}
 
-	return avanzaIds, nil
+	return ids, avanzaIds, nil
 }
