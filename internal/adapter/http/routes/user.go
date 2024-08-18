@@ -1,58 +1,86 @@
 package routes
 
-// import (
-// 	"net/http"
+import (
+	"net/http"
 
-// 	"github.com/dagulv/train-api/internal/adapter/json"
-// 	"github.com/dagulv/train-api/internal/domain/user"
-// 	jsoniter "github.com/json-iterator/go"
-// 	"github.com/labstack/echo/v4"
-// 	"github.com/rs/xid"
-// )
+	"github.com/dagulv/stock-api/internal/adapter/json"
+	"github.com/dagulv/stock-api/internal/adapter/server"
+	"github.com/dagulv/stock-api/internal/core/domain"
+	"github.com/dagulv/stock-api/internal/core/service"
+	jsoniter "github.com/json-iterator/go"
+	"github.com/labstack/echo/v4"
+	"github.com/rs/xid"
+)
 
-// type userRoute struct {
-// 	Json    jsoniter.API
-// 	Service user.Service
-// }
+type userRoute struct {
+	Json    jsoniter.API
+	Service service.User
+}
 
-// func Routes(e *echo.Echo, s user.Service, jsonApi jsoniter.API) {
-// 	r := userRoute{
-// 		Json:    jsonApi,
-// 		Service: s,
-// 	}
+func UserRoutes(e *echo.Echo, s service.User, jsonApi jsoniter.API) {
+	r := userRoute{
+		Json:    jsonApi,
+		Service: s,
+	}
 
-// 	e.GET("/users", r.list)
-// 	e.GET("/users/:id", r.get)
-// }
+	e.GET("/users", r.list, server.Auth)
+	e.GET("/users/:id", r.get)
+	e.POST("/users", r.create, server.Auth)
+}
 
-// func (r userRoute) list(c echo.Context) (err error) {
-// 	domainEncoder := json.CreateDomainEncoder[*user.User](r.Json, c.Response())
-// 	defer r.Json.ReturnStream(domainEncoder.Stream)
+func (r userRoute) list(c echo.Context) (err error) {
+	domainEncoder := json.CreateDomainEncoder[*domain.User](r.Json, c.Response())
+	defer r.Json.ReturnStream(domainEncoder.Stream)
 
-// 	if err = r.Service.List(c.Request().Context(), domainEncoder.AddLine); err != nil {
-// 		return
-// 	}
+	list, err := r.Service.List(c.Request().Context())
 
-// 	return domainEncoder.Flush()
+	if err != nil {
+		return
+	}
 
-// 	// if err = domainEncoder.Flush(); err != nil {
-// 	// 	return
-// 	// }
+	for u := range list {
+		domainEncoder.Add(&u)
+	}
 
-// 	// return c.JSONBlob(http.StatusOK, domainEncoder.Stream.Buffer())
-// }
+	return domainEncoder.Flush()
 
-// func (r userRoute) get(c echo.Context) (err error) {
-// 	var user user.User
-// 	var userId xid.ID
+	// if err = domainEncoder.Flush(); err != nil {
+	// 	return
+	// }
 
-// 	if userId, err = xid.FromString(c.Param("id")); err != nil {
-// 		return
-// 	}
+	// return c.JSONBlob(http.StatusOK, domainEncoder.Stream.Buffer())
+	// return
+}
 
-// 	if err = r.Service.Get(c.Request().Context(), userId, &user); err != nil {
-// 		return
-// 	}
+func (r userRoute) get(c echo.Context) (err error) {
+	var user domain.User
+	var userId xid.ID
 
-// 	return c.JSON(http.StatusOK, user)
-// }
+	if userId, err = xid.FromString(c.Param("id")); err != nil {
+		return
+	}
+
+	if err = r.Service.Get(c.Request().Context(), userId, &user); err != nil {
+		return
+	}
+
+	return c.JSON(http.StatusOK, user)
+}
+
+func (r userRoute) create(c echo.Context) (err error) {
+	var user domain.User
+
+	if err = c.Bind(&user); err != nil {
+		return
+	}
+
+	if err = c.Validate(&user); err != nil {
+		return
+	}
+
+	if err = r.Service.Create(c.Request().Context(), &user); err != nil {
+		return
+	}
+
+	return c.JSON(http.StatusOK, user)
+}

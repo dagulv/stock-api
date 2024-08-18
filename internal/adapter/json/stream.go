@@ -28,7 +28,7 @@ func CreateDomainEncoder[Model StreamEncoder](json jsoniter.API, writer io.Write
 	}
 }
 
-func (e *DomainEncoder[Model]) AddLine(model Model) {
+func (e *DomainEncoder[Model]) Add(model Model) {
 	if e.count > 0 {
 		e.Stream.WriteMore()
 	}

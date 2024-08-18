@@ -74,7 +74,7 @@ func start(ctx context.Context, args []string) (err error) {
 		_, err = migrate.ExecMax(db, "postgres", source, migrate.Down, 1)
 
 		if err != nil {
-			return errors.ErrUnsupported
+			return err
 		}
 
 		fmt.Println("Applied down migration/s")
