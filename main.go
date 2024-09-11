@@ -3,11 +3,11 @@ package main
 import (
 	"context"
 
+	"github.com/dagulv/stock-api/internal/adapter/db"
 	"github.com/dagulv/stock-api/internal/adapter/http"
-	"github.com/dagulv/stock-api/internal/adapter/timescale"
+	"github.com/dagulv/stock-api/internal/adapter/server"
 	"github.com/dagulv/stock-api/internal/core/service"
 	"github.com/dagulv/stock-api/internal/env"
-	"github.com/essentialkaos/branca/v2"
 	jsoniter "github.com/json-iterator/go"
 )
 
@@ -27,26 +27,27 @@ func start(ctx context.Context) (err error) {
 		return
 	}
 
-	brc, err := branca.NewBranca([]byte(env.AuthKey))
+	secretKey := server.GenerateSecretKeyFromEnv(env)
+
+	dbPool, err := db.Connect(ctx, env)
 
 	if err != nil {
 		return
 	}
 
-	db, err := timescale.Connect(ctx, env)
+	defer dbPool.Close()
 
-	if err != nil {
-		return
+	authService := service.Auth{
+		SecretAuthKey: secretKey,
+		Store:         db.NewAuth(dbPool),
 	}
-
-	defer db.Close()
 
 	tickerService := service.Ticker{
-		Store: timescale.NewTicker(db),
+		Store: db.NewTicker(dbPool),
 	}
 
 	userService := service.User{
-		Store: timescale.NewUser(db),
+		Store: db.NewUser(dbPool),
 	}
 
 	// wconfig := &webauthn.Config{
@@ -63,9 +64,14 @@ func start(ctx context.Context) (err error) {
 
 	json := jsoniter.ConfigFastest
 
+	if err != nil {
+		return
+	}
+
 	server := http.Server{
 		Json: json,
 		// WebAuthn: webAuthn,
+		Auth: authService,
 		Tick: tickerService,
 		User: userService,
 	}

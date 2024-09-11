@@ -11,7 +11,7 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/dagulv/stock-api/internal/adapter/timescale"
+	"github.com/dagulv/stock-api/internal/adapter/db"
 	"github.com/dagulv/stock-api/internal/env"
 	"gopkg.in/yaml.v2"
 
@@ -46,7 +46,7 @@ func main() {
 func start(ctx context.Context, args []string) (err error) {
 	configEnv, envVars, err := readExpandedConfig()
 
-	db, err := timescale.Open(ctx, envVars)
+	db, err := db.Open(ctx, envVars)
 
 	if err != nil {
 		return

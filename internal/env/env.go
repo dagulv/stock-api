@@ -8,9 +8,9 @@ import (
 )
 
 type Env struct {
-	DatabaseUrl string
-	AuthKey     string
-	AppUrl      string
+	DatabaseUrl   string
+	AuthSecretKey string
+	AppUrl        string
 }
 
 func GetEnv(paths ...string) (e Env, err error) {
@@ -32,7 +32,7 @@ func GetEnv(paths ...string) (e Env, err error) {
 
 	e.DatabaseUrl = fmt.Sprintf("postgresql://%s:%s@%s/%s?sslmode=disable", os.Getenv("POSTGRES_USER"), os.Getenv("POSTGRES_PASSWORD"), os.Getenv("POSTGRES_HOST"), os.Getenv("POSTGRES_DB"))
 
-	e.AuthKey = os.Getenv("AUTH_KEY")
+	e.AuthSecretKey = os.Getenv("AUTH_SECRET_KEY")
 
 	e.AppUrl = os.Getenv("APP_URL")
 

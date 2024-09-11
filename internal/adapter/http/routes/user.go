@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"github.com/dagulv/stock-api/internal/adapter/json"
-	"github.com/dagulv/stock-api/internal/adapter/server"
 	"github.com/dagulv/stock-api/internal/core/domain"
 	"github.com/dagulv/stock-api/internal/core/service"
 	jsoniter "github.com/json-iterator/go"
@@ -12,23 +11,23 @@ import (
 	"github.com/rs/xid"
 )
 
-type userRoute struct {
+type userRoutes struct {
 	Json    jsoniter.API
 	Service service.User
 }
 
 func UserRoutes(e *echo.Echo, s service.User, jsonApi jsoniter.API) {
-	r := userRoute{
+	r := userRoutes{
 		Json:    jsonApi,
 		Service: s,
 	}
 
-	e.GET("/users", r.list, server.Auth)
+	e.GET("/users", r.list)
 	e.GET("/users/:id", r.get)
-	e.POST("/users", r.create, server.Auth)
+	e.POST("/users", r.create)
 }
 
-func (r userRoute) list(c echo.Context) (err error) {
+func (r userRoutes) list(c echo.Context) (err error) {
 	domainEncoder := json.CreateDomainEncoder[*domain.User](r.Json, c.Response())
 	defer r.Json.ReturnStream(domainEncoder.Stream)
 
@@ -43,16 +42,9 @@ func (r userRoute) list(c echo.Context) (err error) {
 	}
 
 	return domainEncoder.Flush()
-
-	// if err = domainEncoder.Flush(); err != nil {
-	// 	return
-	// }
-
-	// return c.JSONBlob(http.StatusOK, domainEncoder.Stream.Buffer())
-	// return
 }
 
-func (r userRoute) get(c echo.Context) (err error) {
+func (r userRoutes) get(c echo.Context) (err error) {
 	var user domain.User
 	var userId xid.ID
 
@@ -67,7 +59,7 @@ func (r userRoute) get(c echo.Context) (err error) {
 	return c.JSON(http.StatusOK, user)
 }
 
-func (r userRoute) create(c echo.Context) (err error) {
+func (r userRoutes) create(c echo.Context) (err error) {
 	var user domain.User
 
 	if err = c.Bind(&user); err != nil {

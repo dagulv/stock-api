@@ -1,4 +1,4 @@
-package timescale
+package db
 
 import (
 	"iter"

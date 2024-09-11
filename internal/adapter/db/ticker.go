@@ -1,4 +1,4 @@
-package timescale
+package db
 
 import (
 	"context"
@@ -23,7 +23,7 @@ func NewTicker(db *pgxpool.Pool) port.Ticker {
 	return s
 }
 
-// func (p timescale) ExposeTick(ctx context.Context, tick ticker.Tick) (err error) {
+// func (p db) ExposeTick(ctx context.Context, tick ticker.Tick) (err error) {
 // 	_, err = p.db.Exec(ctx, `
 // 	INSERT INTO "stocks_data" (
 // 		"time",

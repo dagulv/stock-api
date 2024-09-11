@@ -13,6 +13,8 @@ require (
 // replace github.com/dagulv/ticker v0.0.1 => ../ticker
 
 require (
+	aidanwoods.dev/go-paseto v1.5.2 // indirect
+	aidanwoods.dev/go-result v0.1.0 // indirect
 	github.com/essentialkaos/branca/v2 v2.0.4 // indirect
 	github.com/fxamacker/cbor/v2 v2.7.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.3 // indirect

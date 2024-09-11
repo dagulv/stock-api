@@ -7,6 +7,7 @@ import (
 	"github.com/rs/xid"
 )
 
+// TODO make tenantid a slice
 type User struct {
 	Id          xid.ID    `json:"id"`
 	TenantId    xid.ID    `json:"tenantId"`
