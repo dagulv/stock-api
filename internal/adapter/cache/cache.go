@@ -77,6 +77,20 @@ func (l *Lru[K, V]) Put(key K, value V) {
 	}
 }
 
+func (l *Lru[K, V]) Delete(key K) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+
+	var element *Element[K, V]
+	var exists bool
+
+	if element, exists = l.data[key]; !exists {
+		return
+	}
+
+	l.remove(element)
+}
+
 func (l *Lru[K, V]) moveToHead(element *Element[K, V]) {
 	element.prev = nil
 	element.next = l.head

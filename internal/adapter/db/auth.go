@@ -25,7 +25,7 @@ func NewAuth(db *pgxpool.Pool) port.Auth {
 	return s
 }
 
-func (s authStore) GetCredentialsByEmail(ctx context.Context, email string, credentials *domain.Credentials) (err error) {
+func (s authStore) GetCredentialsByEmail(ctx context.Context, email string) (credentials *domain.Credentials, err error) {
 	row, err := s.db.Query(
 		ctx,
 		`SELECT
@@ -45,7 +45,11 @@ func (s authStore) GetCredentialsByEmail(ctx context.Context, email string, cred
 
 	defer row.Close()
 
-	return row.Scan(&credentials.UserId, &credentials.Password, &credentials.OtpSecret, &credentials.CredentialId, &credentials.PublicKey)
+	if err = row.Scan(&credentials.UserId, &credentials.Password, &credentials.OtpSecret, &credentials.CredentialId, &credentials.PublicKey); err != nil {
+		return
+	}
+
+	return
 }
 
 func (s authStore) UpdatePassword(ctx context.Context, userId xid.ID, hashedPassword []byte) (err error) {
@@ -60,38 +64,33 @@ func (s authStore) UpdatePassword(ctx context.Context, userId xid.ID, hashedPass
 	return
 }
 
-func (s authStore) LazyGetSessionUser(ctx context.Context, sessionUserId xid.ID) (sessionUser *domain.SessionUser, err error) {
+func (s authStore) LazyGetSessionUser(ctx context.Context, sessionId xid.ID) (sessionUser *domain.SessionUser, err error) {
 	var exists bool
 
-	if sessionUser, exists = s.cache.Get(sessionUserId); exists {
+	if sessionUser, exists = s.cache.Get(sessionId); exists {
 		return
 	}
 
-	if err = s.getSessionUser(ctx, sessionUserId, sessionUser); err != nil {
+	if err = s.getSessionUser(ctx, sessionId, sessionUser); err != nil {
 		return nil, err
 	}
 
 	return
 }
 
-func (s authStore) getSessionUser(ctx context.Context, sessionUserId xid.ID, sessionUser *domain.SessionUser) (err error) {
-	row, err := s.db.Query(
+func (s authStore) getSessionUser(ctx context.Context, sessionId xid.ID, sessionUser *domain.SessionUser) (err error) {
+	row := s.db.QueryRow(
 		ctx,
 		`SELECT
-			"id",
-			"tenantId",
-			"firstName",
-			"lastName",
-			"email"
-		FROM "user"
-		WHERE "id" = $1`, sessionUserId,
+			"user"."id",
+			"user"."tenantId",
+			"user"."firstName",
+			"user"."lastName",
+			"user"."email"
+		FROM "session"
+		LEFT JOIN "user" ON "session"."userId" = "user"."id"
+		WHERE "session"."id" = $1`, sessionId,
 	)
-
-	if err != nil {
-		return
-	}
-
-	defer row.Close()
 
 	if err = row.Scan(&sessionUser.Id, &sessionUser.TenantId, &sessionUser.FirstName, &sessionUser.LastName, &sessionUser.Email); err != nil {
 		return
@@ -108,6 +107,7 @@ func (s authStore) GetSession(ctx context.Context, sessionId xid.ID, session *do
 		`SELECT
 			"id",
 			"userId",
+			"scope",
 			"timeExpired"
 		FROM "session"
 		WHERE "id" = $1`, sessionId,
@@ -128,6 +128,7 @@ func (s authStore) InsertSession(ctx context.Context, session domain.Session) (e
 		`INSERT INTO "session" (
 			"id",
 			"userId",
+			"scope",
 			"timeExpired"
 		) VALUES ($1, $2, $3)`, session.Id, session.UserId, session.TimeExpired,
 	)
@@ -140,6 +141,12 @@ func (s authStore) DeleteSession(ctx context.Context, sessionId xid.ID) (err err
 		ctx,
 		`DELETE FROM "session" WHERE "id" = $1`, sessionId,
 	)
+
+	if err != nil {
+		return
+	}
+
+	s.cache.Delete(sessionId)
 
 	return
 }

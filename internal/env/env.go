@@ -8,9 +8,12 @@ import (
 )
 
 type Env struct {
-	DatabaseUrl   string
-	AuthSecretKey string
-	AppUrl        string
+	DatabaseUrl      string
+	AuthSecretKey    string
+	AppUrl           string
+	MailerSendApiKey string
+	RecipientName    string
+	RecipientEmail   string
 }
 
 func GetEnv(paths ...string) (e Env, err error) {
@@ -35,6 +38,11 @@ func GetEnv(paths ...string) (e Env, err error) {
 	e.AuthSecretKey = os.Getenv("AUTH_SECRET_KEY")
 
 	e.AppUrl = os.Getenv("APP_URL")
+
+	e.MailerSendApiKey = os.Getenv("MAILERSEND_API_KEY")
+
+	e.RecipientName = os.Getenv("RECIPIENT_NAME")
+	e.RecipientEmail = os.Getenv("RECIPIENT_EMAIL")
 
 	return
 }

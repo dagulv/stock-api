@@ -32,14 +32,15 @@ func (s Server) StartServer(ctx context.Context) (err error) {
 
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		Skipper:          middleware.DefaultSkipper,
-		AllowOrigins:     []string{"localhost:3000", s.Env.AppUrl},
+		AllowOrigins:     []string{"http://localhost:3000", s.Env.AppUrl},
 		AllowMethods:     []string{http.MethodGet, http.MethodPut, http.MethodPost, http.MethodDelete},
 		AllowCredentials: true,
 	}))
 
-	e.Use(server.Auth(s.Auth.Store, s.Auth.SecretAuthKey, s.Auth.SecretAuthKey.Public(), map[string][]string{
-		"/login":    {http.MethodPost},
-		"/register": {http.MethodPost},
+	e.Use(server.Auth(s.Auth.Store, s.Auth.Parser, s.Auth.SecretAuthKey, s.Auth.SecretAuthKey.Public(), map[string][]string{
+		"/login":        {http.MethodPost},
+		"/access-token": {http.MethodGet},
+		"/register":     {http.MethodPost},
 	}))
 
 	s.addRoutes(e)

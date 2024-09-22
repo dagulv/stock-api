@@ -3,12 +3,15 @@ package main
 import (
 	"context"
 
+	"aidanwoods.dev/go-paseto"
 	"github.com/dagulv/stock-api/internal/adapter/db"
 	"github.com/dagulv/stock-api/internal/adapter/http"
+	"github.com/dagulv/stock-api/internal/adapter/mailer"
 	"github.com/dagulv/stock-api/internal/adapter/server"
 	"github.com/dagulv/stock-api/internal/core/service"
 	"github.com/dagulv/stock-api/internal/env"
 	jsoniter "github.com/json-iterator/go"
+	"github.com/mailersend/mailersend-go"
 )
 
 func main() {
@@ -37,8 +40,23 @@ func start(ctx context.Context) (err error) {
 
 	defer dbPool.Close()
 
+	parser := paseto.NewParser()
+	parser.AddRule(paseto.Subject("id"), paseto.NotExpired())
+
+	ms := mailersend.NewMailersend(env.MailerSendApiKey)
+	mailer := mailer.New(ctx, mailer.Mailersend{
+		From: mailersend.Recipient{
+			Name:  env.RecipientName,
+			Email: env.RecipientEmail,
+		},
+		Ms: ms,
+	}, 10)
+
 	authService := service.Auth{
 		SecretAuthKey: secretKey,
+		Parser:        parser,
+		Mailer:        mailer,
+		Env:           env,
 		Store:         db.NewAuth(dbPool),
 	}
 
