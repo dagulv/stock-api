@@ -11,44 +11,48 @@
 -- END$$;
 -- +migrate StatementEnd
 
-CREATE TABLE IF NOT EXISTS "tenant" (
+CREATE TABLE IF NOT EXISTS "groups" (
     "id" VARCHAR(20) PRIMARY KEY,
     "name" TEXT NOT NULL,
-    "domain" TEXT NOT NULL,
     "active" BOOLEAN NOT NULL,
     "timeCreated" TIMESTAMP WITH TIME ZONE NOT NULL,
     "timeUpdated" TIMESTAMP WITH TIME ZONE NOT NULL,
     "ts" tsvector GENERATED ALWAYS AS (to_tsvector('custom_english', COALESCE("name", ''))) STORED
 );
-CREATE INDEX IF NOT EXISTS "tenant_domain" ON "tenant" ("domain");
-CREATE INDEX IF NOT EXISTS "tenant_active" ON "tenant" ("active");
-CREATE INDEX IF NOT EXISTS "tenant_ts" ON "tenant" USING GIN ("ts");
+CREATE INDEX IF NOT EXISTS "groups_active" ON "groups" ("active");
+CREATE INDEX IF NOT EXISTS "groups_ts" ON "groups" USING GIN ("ts");
 
-CREATE TABLE IF NOT EXISTS "user" (
+CREATE TABLE IF NOT EXISTS "users" (
     "id" VARCHAR(20) PRIMARY KEY,
-    "tenantId" VARCHAR(20) NOT NULL,
-    "firstName" TEXT NOT NULL,
+    "firstName" TEXT,
     "lastName" TEXT,
-    "email" TEXT NOT NULL,
-    "active" BOOLEAN NOT NULL,
+    "email" TEXT UNIQUE NOT NULL,
     "timeCreated" TIMESTAMP WITH TIME ZONE NOT NULL,
     "timeUpdated" TIMESTAMP WITH TIME ZONE NOT NULL,
     "ts" tsvector GENERATED ALWAYS AS (to_tsvector('custom_english', COALESCE("firstName", '') || ' ' || COALESCE("lastName", '') || ' ' || COALESCE("email", ''))) STORED
 );
-CREATE INDEX IF NOT EXISTS "user_email" ON "user" ("email");
-CREATE INDEX IF NOT EXISTS "user_active" ON "user" ("active");
-CREATE INDEX IF NOT EXISTS "user_ts" ON "user" USING GIN ("ts");
+CREATE INDEX IF NOT EXISTS "users_email" ON "users" ("email");
+CREATE INDEX IF NOT EXISTS "users_ts" ON "users" USING GIN ("ts");
+
+CREATE TABLE IF NOT EXISTS "group_user_relations" (
+    "groupId" VARCHAR(20) NOT NULL,
+    "userId" VARCHAR(20) NOT NULL,
+    "role" TEXT NOT NULL,
+    PRIMARY KEY ("groupId", "userId")
+);
+CREATE INDEX IF NOT EXISTS "group_user_relations_role" ON "group_user_relations" ("role");
 
 CREATE TABLE IF NOT EXISTS "credentials" (
     "userId" VARCHAR(20) PRIMARY KEY,
     "password" TEXT,
     "otpSecret" TEXT,
-    "credentialId" VARCHAR(1023) NOT NULL UNIQUE,
-    "publicKey" TEXT NOT NULL
+    "credentialId" VARCHAR(1023),
+    "publicKey" TEXT
 );
 CREATE INDEX IF NOT EXISTS "credentials_credentialId" ON "credentials" ("credentialId");
 
 -- +migrate Down
-DROP TABLE "user";
-DROP TABLE "tenant";
+DROP TABLE "users";
+DROP TABLE "groups";
+DROP TABLE "group_user_relations";
 DROP TABLE "credentials";

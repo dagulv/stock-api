@@ -24,7 +24,6 @@ func (s User) Get(ctx context.Context, userId xid.ID, dst *domain.User) (err err
 
 func (s User) Create(ctx context.Context, user *domain.User) (err error) {
 	user.Id = xid.NewWithTime(time.Now())
-	user.TenantId = user.Id
 	user.TimeCreated = time.Now()
 	user.TimeUpdated = user.TimeCreated
 

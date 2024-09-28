@@ -25,7 +25,9 @@ type Auth struct {
 
 // TODO: Change to Login WithPassword func as parameter that returns bool
 func (s Auth) LoginWithPassword(ctx context.Context, credentials domain.Credentials) (signedRefreshToken string, signedAccessToken string, err error) {
-	existingCredentials, err := s.Store.GetCredentialsByEmail(ctx, credentials.Email)
+	var existingCredentials domain.Credentials
+
+	err = s.Store.GetCredentialsByEmail(ctx, credentials.Email, &existingCredentials)
 
 	if err != nil {
 		bcrypt.CompareHashAndPassword(nil, nil)
@@ -58,7 +60,9 @@ func (s Auth) NewPassword(ctx context.Context, credentials domain.Credentials) (
 		return
 	}
 
-	existingCredentials, err := s.Store.GetCredentialsByEmail(ctx, credentials.Email)
+	var existingCredentials domain.Credentials
+
+	err = s.Store.GetCredentialsByEmail(ctx, credentials.Email, &existingCredentials)
 
 	if err != nil {
 		return
@@ -68,7 +72,9 @@ func (s Auth) NewPassword(ctx context.Context, credentials domain.Credentials) (
 }
 
 func (s Auth) VerifyEmail(ctx context.Context, email string) (err error) {
-	existingCredentials, err := s.Store.GetCredentialsByEmail(ctx, email)
+	var existingCredentials domain.Credentials
+
+	err = s.Store.GetCredentialsByEmail(ctx, email, &existingCredentials)
 
 	if err != nil {
 		return
@@ -111,16 +117,12 @@ func (s Auth) VerifyEmail(ctx context.Context, email string) (err error) {
 	return
 }
 
-func (s Auth) SessionUserFromToken(ctx context.Context, token *paseto.Token) (sessionUser *domain.SessionUser, err error) {
+func (s Auth) SessionUserFromToken(ctx context.Context, token *paseto.Token) (_ *domain.SessionUser, err error) {
 	sessionId, err := server.SessionIdFromToken(token)
 
 	if err != nil {
 		return
 	}
 
-	if sessionUser, err = s.Store.LazyGetSessionUser(ctx, sessionId); err != nil {
-		return
-	}
-
-	return
+	return s.Store.LazyGetSessionUser(ctx, sessionId)
 }

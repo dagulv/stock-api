@@ -25,8 +25,8 @@ func NewAuth(db *pgxpool.Pool) port.Auth {
 	return s
 }
 
-func (s authStore) GetCredentialsByEmail(ctx context.Context, email string) (credentials *domain.Credentials, err error) {
-	row, err := s.db.Query(
+func (s authStore) GetCredentialsByEmail(ctx context.Context, email string, credentials *domain.Credentials) (err error) {
+	row := s.db.QueryRow(
 		ctx,
 		`SELECT
 			"credentials"."userId",
@@ -34,20 +34,29 @@ func (s authStore) GetCredentialsByEmail(ctx context.Context, email string) (cre
 			"credentials"."otpSecret",
 			"credentials"."credentialId",
 			"credentials"."publicKey"
-		FROM "user"
-		LEFT JOIN "credentials" ON "credentials"."userId" = "user"."id"
-		WHERE "user"."email" = $1`, email,
+		FROM "users"
+		INNER JOIN "credentials" ON "credentials"."userId" = "users"."id"
+		WHERE "users"."email" = $1`, email,
 	)
-
-	if err != nil {
-		return
-	}
-
-	defer row.Close()
 
 	if err = row.Scan(&credentials.UserId, &credentials.Password, &credentials.OtpSecret, &credentials.CredentialId, &credentials.PublicKey); err != nil {
 		return
 	}
+
+	return nil
+}
+
+func (s authStore) InsertCredentials(ctx context.Context, creds domain.Credentials) (err error) {
+	_, err = s.db.Exec(
+		ctx,
+		`INSERT INTO "credentials" (
+			"userId",
+			"password",
+			"otpSecret",
+			"credentialId",
+			"publicKey"
+		) VALUES ($1, $2, $3, $4, $5)`, creds.UserId, creds.Password, creds.OtpSecret, creds.CredentialId, creds.PublicKey,
+	)
 
 	return
 }
@@ -71,34 +80,31 @@ func (s authStore) LazyGetSessionUser(ctx context.Context, sessionId xid.ID) (se
 		return
 	}
 
-	if err = s.getSessionUser(ctx, sessionId, sessionUser); err != nil {
-		return nil, err
-	}
-
-	return
+	return s.getSessionUser(ctx, sessionId)
 }
 
-func (s authStore) getSessionUser(ctx context.Context, sessionId xid.ID, sessionUser *domain.SessionUser) (err error) {
+func (s authStore) getSessionUser(ctx context.Context, sessionId xid.ID) (_ *domain.SessionUser, err error) {
+	var sessionUser domain.SessionUser
+
 	row := s.db.QueryRow(
 		ctx,
 		`SELECT
-			"user"."id",
-			"user"."tenantId",
-			"user"."firstName",
-			"user"."lastName",
-			"user"."email"
+			"users"."id",
+			"users"."firstName",
+			"users"."lastName",
+			"users"."email"
 		FROM "session"
-		LEFT JOIN "user" ON "session"."userId" = "user"."id"
+		INNER JOIN "users" ON "session"."userId" = "users"."id"
 		WHERE "session"."id" = $1`, sessionId,
 	)
 
-	if err = row.Scan(&sessionUser.Id, &sessionUser.TenantId, &sessionUser.FirstName, &sessionUser.LastName, &sessionUser.Email); err != nil {
+	if err = row.Scan(&sessionUser.Id, &sessionUser.FirstName, &sessionUser.LastName, &sessionUser.Email); err != nil {
 		return
 	}
 
-	s.cache.Put(sessionUser.Id, *sessionUser)
+	s.cache.Put(sessionUser.Id, sessionUser)
 
-	return
+	return &sessionUser, nil
 }
 
 func (s authStore) GetSession(ctx context.Context, sessionId xid.ID, session *domain.Session) (err error) {
@@ -119,7 +125,7 @@ func (s authStore) GetSession(ctx context.Context, sessionId xid.ID, session *do
 
 	defer row.Close()
 
-	return row.Scan(&session.Id, &session.UserId, &session.TimeExpired)
+	return row.Scan(&session.Id, &session.UserId, &session.Scope, &session.TimeExpired)
 }
 
 func (s authStore) InsertSession(ctx context.Context, session domain.Session) (err error) {
@@ -130,7 +136,7 @@ func (s authStore) InsertSession(ctx context.Context, session domain.Session) (e
 			"userId",
 			"scope",
 			"timeExpired"
-		) VALUES ($1, $2, $3)`, session.Id, session.UserId, session.TimeExpired,
+		) VALUES ($1, $2, $3, $4)`, session.Id, session.UserId, session.Scope, session.TimeExpired,
 	)
 
 	return

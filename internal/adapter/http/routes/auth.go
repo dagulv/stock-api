@@ -31,7 +31,7 @@ func AuthRoutes(e *echo.Echo, s service.Auth, jsonApi jsoniter.API) {
 }
 
 func (r authRoutes) auth(c echo.Context) (err error) {
-	sessionUser, ok := c.Get(server.SessionUserKey).(domain.SessionUser)
+	sessionUser, ok := c.Get(server.SessionUserKey).(*domain.SessionUser)
 
 	if !ok {
 		return c.NoContent(http.StatusUnauthorized)
@@ -99,7 +99,7 @@ func (r authRoutes) accessToken(c echo.Context) (err error) {
 
 	server.SetCookie(c, signedRefreshToken)
 
-	return c.JSON(http.StatusUnauthorized, map[string]string{
+	return c.JSON(http.StatusOK, map[string]string{
 		"accessToken": signedAccessToken,
 	})
 }

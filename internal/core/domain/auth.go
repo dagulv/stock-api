@@ -32,7 +32,6 @@ type Session struct {
 // TODO make tenantid a slice
 type SessionUser struct {
 	Id        xid.ID `json:"id"`
-	TenantId  xid.ID `json:"tenantId"`
 	FirstName string `json:"firstName"`
 	LastName  string `json:"lastName"`
 	Email     string `json:"email"`

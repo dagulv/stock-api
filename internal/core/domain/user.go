@@ -10,7 +10,6 @@ import (
 // TODO make tenantid a slice
 type User struct {
 	Id          xid.ID    `json:"id"`
-	TenantId    xid.ID    `json:"tenantId"`
 	FirstName   string    `json:"firstName"`
 	LastName    string    `json:"lastName"`
 	Email       string    `json:"email" validate:"required,email"`
@@ -22,10 +21,6 @@ type User struct {
 func (u *User) EncodeToStream(s *jsoniter.Stream) {
 	s.WriteObjectField("id")
 	s.WriteString(u.Id.String())
-
-	s.WriteMore()
-	s.WriteObjectField("tenantId")
-	s.WriteString(u.TenantId.String())
 
 	s.WriteMore()
 	s.WriteObjectField("firstName")

@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	RefreshTokenName = "refresh-token"
+	RefreshTokenName = "refreshToken"
 	BearerPrefix     = "Bearer "
 	SessionUserKey   = "user"
 )
@@ -84,7 +84,7 @@ func tokenFromBearer(c echo.Context, parser paseto.Parser, publicKey paseto.V4As
 
 	prefixLen := len(BearerPrefix)
 
-	if len(authHeader) <= prefixLen || strings.EqualFold(authHeader[:prefixLen], BearerPrefix) {
+	if len(authHeader) <= prefixLen || strings.EqualFold(authHeader[prefixLen:], BearerPrefix) {
 		c.Response().Header().Set("WWW-Authenticate", "Bearer")
 		return nil, errHeaderValueInvalid
 	}
@@ -96,19 +96,19 @@ func UnsetCookie(c echo.Context) {
 	c.SetCookie(&http.Cookie{
 		Name:     RefreshTokenName,
 		Value:    "",
-		Path:     "/auth",
+		Path:     "/",
 		MaxAge:   -1,
+		Secure:   false,
 		HttpOnly: true,
-		Secure:   true,
 	})
 }
 
 func SetCookie(c echo.Context, signedToken string) {
-	http.SetCookie(c.Response(), &http.Cookie{
+	c.SetCookie(&http.Cookie{
 		Name:     RefreshTokenName,
 		Value:    signedToken,
-		Path:     "/auth",
-		Secure:   true,
+		Path:     "/",
+		Secure:   false,
 		HttpOnly: true,
 		SameSite: http.SameSiteLaxMode,
 	})

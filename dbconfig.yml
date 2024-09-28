@@ -1,5 +1,5 @@
 development:
   dialect: postgres
   datasource: user=${POSTGRES_USER} password=${POSTGRES_PASSWORD} host=${POSTGRES_HOST} dbname=${POSTGRES_DB} sslmode=disable
-  dir: ./internal/adapter/timescale/migrations
+  dir: ./internal/adapter/db/migrations
   table: migrations

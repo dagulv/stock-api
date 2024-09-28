@@ -14,6 +14,7 @@ type Env struct {
 	MailerSendApiKey string
 	RecipientName    string
 	RecipientEmail   string
+	AdminUserCred    string
 }
 
 func GetEnv(paths ...string) (e Env, err error) {
@@ -43,6 +44,8 @@ func GetEnv(paths ...string) (e Env, err error) {
 
 	e.RecipientName = os.Getenv("RECIPIENT_NAME")
 	e.RecipientEmail = os.Getenv("RECIPIENT_EMAIL")
+
+	e.AdminUserCred = os.Getenv("ADMIN_USER")
 
 	return
 }

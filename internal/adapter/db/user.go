@@ -27,14 +27,12 @@ func (s userStore) List(ctx context.Context) (_ iter.Seq[domain.User], err error
 		ctx,
 		`SELECT
 			"id",
-			"tenantId",
 			"firstName",
 			"lastName",
 			"email",
-			"active",
 			"timeCreated",
 			"timeUpdated"
-		FROM "user"`,
+		FROM "users"`,
 	)
 
 	if err != nil {
@@ -42,7 +40,7 @@ func (s userStore) List(ctx context.Context) (_ iter.Seq[domain.User], err error
 	}
 
 	return Iter(rows, func(r pgx.Rows) (user domain.User, err error) {
-		if err = rows.Scan(&user.Id, &user.TenantId, &user.FirstName, &user.LastName, &user.Email, &user.Active, &user.TimeCreated, &user.TimeUpdated); err != nil {
+		if err = rows.Scan(&user.Id, &user.FirstName, &user.LastName, &user.Email, &user.TimeCreated, &user.TimeUpdated); err != nil {
 			return
 		}
 
@@ -54,8 +52,8 @@ func (s userStore) Get(ctx context.Context, userId xid.ID, dst *domain.User) (er
 	row := s.db.QueryRow(
 		ctx,
 		`SELECT
-			"user"."id"
-		FROM "user"`,
+			"users"."id"
+		FROM "users"`,
 	)
 
 	if err = row.Scan(&dst.Id); err != nil {
@@ -73,22 +71,18 @@ func (s userStore) Get(ctx context.Context, userId xid.ID, dst *domain.User) (er
 func (s userStore) Create(ctx context.Context, user *domain.User) (err error) {
 	_, err = s.db.Exec(
 		ctx,
-		`INSERT INTO "user" (
+		`INSERT INTO "users" (
 			"id",
-			"tenantId",
 			"firstName",
 			"lastName",
 			"email",
-			"active",
 			"timeCreated",
 			"timeUpdated"
-		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+		) VALUES ($1, $2, $3, $4, $5, $6)`,
 		user.Id,
-		user.TenantId,
 		user.FirstName,
 		user.LastName,
 		user.Email,
-		user.Active,
 		user.TimeCreated,
 		user.TimeUpdated,
 	)
