@@ -50,7 +50,7 @@ func (r authRoutes) login(c echo.Context) (err error) {
 	signedRefreshToken, signedAccessToken, err := r.Service.LoginWithPassword(c.Request().Context(), credentials)
 
 	if err != nil {
-		return
+		return c.NoContent(http.StatusNotFound)
 	}
 
 	server.SetCookie(c, signedRefreshToken)
