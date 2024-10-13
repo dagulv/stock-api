@@ -1,16 +1,4 @@
 -- +migrate Up
--- +migrate StatementBegin
--- DO $$
--- BEGIN
---     IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'id_and_name') THEN
---         CREATE TYPE ID_AND_NAME AS (
--- 			"id" VARCHAR(20),
--- 			"name" TEXT
--- 		);
---     END IF;
--- END$$;
--- +migrate StatementEnd
-
 CREATE TABLE IF NOT EXISTS "groups" (
     "id" VARCHAR(20) PRIMARY KEY,
     "name" TEXT NOT NULL,

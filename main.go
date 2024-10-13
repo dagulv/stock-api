@@ -77,6 +77,10 @@ func start(ctx context.Context) (err error) {
 		Store: db.NewUser(dbPool),
 	}
 
+	stockService := service.Stock{
+		Store: db.NewStock(dbPool),
+	}
+
 	wconfig := &webauthn.Config{
 		RPDisplayName: "Stock",
 		RPID:          "stock.local",
@@ -101,6 +105,7 @@ func start(ctx context.Context) (err error) {
 		Auth:     authService,
 		Tick:     tickerService,
 		User:     userService,
+		Stock:    stockService,
 	}
 
 	if err = createUser(ctx, authService.Store, userService.Store, env); err != nil {

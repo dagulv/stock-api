@@ -9,4 +9,5 @@ func (s Server) addRoutes(e *echo.Echo) {
 	// routes.Routes(e, s.Tick, s.Json)
 	routes.UserRoutes(e, s.User, s.Json)
 	routes.AuthRoutes(e, s.Auth, s.Json)
+	routes.StockRoutes(e, s.Stock, s.Json)
 }

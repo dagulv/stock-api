@@ -17,11 +17,12 @@ import (
 type Server struct {
 	Json           jsoniter.API
 	MiddlewareAuth echo.MiddlewareFunc
-	Auth           service.Auth
 	WebAuthn       *webauthn.WebAuthn
+	Env            env.Env
+	Auth           service.Auth
 	Tick           service.Ticker
 	User           service.User
-	Env            env.Env
+	Stock          service.Stock
 }
 
 func (s Server) StartServer(ctx context.Context) (err error) {

@@ -1,15 +1,29 @@
 -- +migrate Up
-DROP TABLE "company";
-
-CREATE TABLE IF NOT EXISTS "company" (
+CREATE TABLE IF NOT EXISTS "companies" (
     "id" CHAR(20) PRIMARY KEY,
-    "symbol" TEXT NOT NULL,
+    "symbol" TEXT NOT NULL UNIQUE,
     "name" TEXT NOT NULL,
     "isin" TEXT NOT NULL,
-    "avanza_id" INT NOT NULL
+    "avanzaId" INT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS "companies_symbol" ON "companies" ("symbol");
+CREATE INDEX IF NOT EXISTS "companies_isin" ON "companies" ("isin");
+CREATE INDEX IF NOT EXISTS "companies_avanza_id" ON "companies" ("avanzaId");
+
+CREATE TABLE IF NOT EXISTS "ohlcv" (
+    "companyId" CHAR(20) NOT NULL,
+    "open" DOUBLE PRECISION NOT NULL,
+    "high" DOUBLE PRECISION NOT NULL,
+    "low" DOUBLE PRECISION NOT NULL,
+    "close" DOUBLE PRECISION NOT NULL,
+    "volume" INT NOT NULL,
+    "time" TIMESTAMPTZ NOT NULL
 );
 
-INSERT INTO "company"
+SELECT create_hypertable('ohlcv', by_range('time'));
+CREATE INDEX id_time_ohlcv ON "ohlcv" ("companyId", "time" DESC);
+
+INSERT INTO "companies"
 VALUES
   (xid(), '247', '24SevenOffice Group', 'SE0010546911', 812516),
   (xid(), 'ECOM', 'ECOMB', 'SE0004051068', 272628),
@@ -1068,9 +1082,5 @@ VALUES
   (xid(), 'WISE', 'Wise Group', 'SE0007277876', 74787);
 
 -- +migrate Down
-DROP TABLE "company";
-
-CREATE TABLE IF NOT EXISTS "company" (
-    "symbol" TEXT PRIMARY KEY,
-    "name" TEXT NOT NULL
-);
+DROP TABLE "ohlcv";
+DROP TABLE "companies";

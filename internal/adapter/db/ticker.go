@@ -49,7 +49,7 @@ func (s tickerStore) CopyFrom(ctx context.Context, ticks []ticker.Tick) (err err
 }
 
 func (s tickerStore) InsertHistoricOhlcv(ctx context.Context, ohlcv []ticker.Ohlcv) (err error) {
-	_, err = s.db.CopyFrom(ctx, pgx.Identifier{"ohlcv"}, []string{"id", "open", "high", "low", "close", "volume", "time"}, pgx.CopyFromSlice(len(ohlcv), func(i int) ([]any, error) {
+	_, err = s.db.CopyFrom(ctx, pgx.Identifier{"ohlcv"}, []string{"companyId", "open", "high", "low", "close", "volume", "time"}, pgx.CopyFromSlice(len(ohlcv), func(i int) ([]any, error) {
 		return []any{
 			ohlcv[i].Id,
 			ohlcv[i].Open,
@@ -67,8 +67,8 @@ func (s tickerStore) GetAvanzaIds(ctx context.Context, ids []xid.ID, avanzaIds [
 	rows, err := s.db.Query(ctx, `
 		SELECT
 			"id",
-			"avanza_id"
-		FROM "company"
+			"avanzaId"
+		FROM "companies"
 	`)
 
 	if err != nil {
